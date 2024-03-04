@@ -4,33 +4,33 @@ from ..chain.aerial.config import NetworkConfig
 
 
 # ------------ API URLs ------------
-INDEXER_API_HOST_MAINNET = ''
+INDEXER_API_HOST_MAINNET = 'https://indexer.dydx.trade'
 INDEXER_API_HOST_TESTNET = 'https://indexer.v4testnet.dydx.exchange'
 
-INDEXER_WS_HOST_MAINNET = ''
+INDEXER_WS_HOST_MAINNET = 'wss://indexer.dydx.trade/v4/ws'
 INDEXER_WS_HOST_TESTNET = 'wss://indexer.v4testnet.dydx.exchange/v4/ws'
 
 FAUCET_API_HOST_TESTNET = 'https://faucet.v4testnet.dydx.exchange'
 
-VALIDATOR_API_HOST_MAINNET = ''
+VALIDATOR_API_HOST_MAINNET = 'https://dydx-ops-rest.kingnodes.com'
 VALIDATOR_API_HOST_TESTNET = 'https://test-dydx.kingnodes.com'
 
-VALIDATOR_GRPC_MAINNET = ''
-VALIDATOR_GRPC_TESTNET = 'test-dydx-grpc.kingnodes.com:443'
+VALIDATOR_GRPC_MAINNET = 'https://dydx-ops-grpc.kingnodes.com:443'
+VALIDATOR_GRPC_TESTNET = 'https://test-dydx-grpc.kingnodes.com:443'
 
 # ------------ Ethereum Network IDs ------------
-NETWORK_ID_MAINNET = ''
+NETWORK_ID_MAINNET = 'dydx-mainnet-1'
 NETWORK_ID_TESTNET = 'dydx-testnet-4'
 
 # ------------ Network Config ------------
 FEE_MINIMUM_MAINNET = 0
 FEE_MINIMUM_TESTNET = 4630550000000000
 
-FEE_DENOM_MAINNET = ''
+FEE_DENOM_MAINNET = 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5'
 FEE_DENOM_TESTNET = 'adv4tnt'
 
-STAKE_DENOM_MAINNET = ''
-STAKE_DENOM_TESTNET = 'dv4tnt'
+STAKE_DENOM_MAINNET = 'adydx'
+STAKE_DENOM_TESTNET = 'adv4tnt'
 
 # ------------ Market Statistic Day Types ------------
 MARKET_STATISTIC_DAY_ONE = '1'
@@ -151,7 +151,7 @@ class Network:
             ssl_enabled=True,
             network_config=NetworkConfig(
                 chain_id=NETWORK_ID_TESTNET,
-                url='grpc+https://' + VALIDATOR_GRPC_TESTNET,
+                url='grpc+' + VALIDATOR_GRPC_TESTNET,
                 fee_minimum_gas_price=FEE_MINIMUM_TESTNET,
                 fee_denomination=FEE_DENOM_TESTNET,
                 staking_denomination=STAKE_DENOM_TESTNET,
@@ -177,7 +177,7 @@ class Network:
             ssl_enabled=True,
             network_config=NetworkConfig(
                 chain_id=NETWORK_ID_MAINNET,
-                url='grpc+https://' + VALIDATOR_GRPC_MAINNET,
+                url='grpc+' + VALIDATOR_GRPC_MAINNET,
                 fee_minimum_gas_price=FEE_MINIMUM_MAINNET,
                 fee_denomination=FEE_DENOM_MAINNET,
                 staking_denomination=STAKE_DENOM_MAINNET,
@@ -205,16 +205,14 @@ class Network:
         fee_minimum_gas_price: Union[int, float],
         fee_denomination: str,
         staking_denomination: str,
-        ssl_enabled: bool = True,
         faucet_endpoint: Optional[str] = None,
     ):
         validator_config = ValidatorConfig(
             grpc_endpoint=grpc_endpoint,
             chain_id=chain_id,
-            ssl_enabled=ssl_enabled,
             network_config=NetworkConfig(
                 chain_id=chain_id,
-                url=['grpc+http://', 'grpc+https://'][ssl_enabled] + grpc_endpoint,
+                url='grpc+' + grpc_endpoint,
                 fee_minimum_gas_price=fee_minimum_gas_price,
                 fee_denomination=fee_denomination,
                 staking_denomination=staking_denomination,
