@@ -65,7 +65,8 @@ class Markets(object):
 
     def get_perpetual_market_trades(
         self, 
-        market: str, 
+        market: str,
+        starting_before_or_at: str = None,
         starting_before_or_at_height: int = None, 
         limit: int = None
     ) -> Response:
@@ -80,6 +81,9 @@ class Markets(object):
             ...
         ]
 
+        :param starting_before_or_at: optional
+        :type starting_before_or_at: ISO str
+
         :param starting_before_or_at_height: optional
         :type starting_before_or_at_height: number
 
@@ -88,10 +92,13 @@ class Markets(object):
         :raises: DydxAPIError
         '''
         uri = '/'.join(['/v4/trades/perpetualMarket', market])
-        return self._get(
-            uri,
-            {'createdBeforeOrAtHeight': starting_before_or_at_height, 'limit': limit},
-        )
+        params = {'limit': limit}
+        if starting_before_or_at is not None:
+            params['createdBeforeOrAt'] = starting_before_or_at
+        elif starting_before_or_at_height is not None:
+            params['createdBeforeOrAtHeight'] = starting_before_or_at_height
+
+        return self._get(uri, params)
 
     def get_perpetual_market_candles(
         self,
