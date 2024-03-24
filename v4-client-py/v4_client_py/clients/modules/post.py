@@ -220,11 +220,11 @@ class Post:
     ) -> SubmittedTx:
         return self.cancel_order(
             subaccount,
-            cancel_order.client_id,
-            cancel_order.clob_pair_id,
-            cancel_order.order_flags,
-            cancel_order.good_til_block,
-            cancel_order.good_til_block_time,
+            cancel_order['client_id'],
+            cancel_order['clob_pair_id'],
+            cancel_order['order_flags'],
+            cancel_order.get('good_til_block', 0),
+            cancel_order.get('good_til_block_time', 0),
             broadcast_mode=broadcast_mode,
         )
         
