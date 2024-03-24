@@ -446,7 +446,7 @@ class CompositeClient:
         good_til_block: int,
     )  -> SubmittedTx:
         '''
-        Cancel order
+        Cancel short term order
 
         :param subaccount: required
         :type subaccount: Subaccount
@@ -517,7 +517,7 @@ class CompositeClient:
         amount: float,
     )  -> SubmittedTx:
         '''
-        Cancel order
+        Transfer to subaccount
 
         :param subaccount: required
         :type subaccount: Subaccount
@@ -538,7 +538,7 @@ class CompositeClient:
             recipient_address=recipient_address,
             recipient_subaccount_number=recipient_subaccount_number,
             asset_id=0,
-            amount=amount * 10**6,
+            amount=amount * 10 ** (-QUOTE_QUANTUMS_ATOMIC_RESOLUTION),
         )
     
     def deposit_to_subaccount(
@@ -547,7 +547,7 @@ class CompositeClient:
         amount: float,
     )  -> SubmittedTx:
         '''
-        Cancel order
+        Deposit to subaccount
 
         :param subaccount: required
         :type subaccount: Subaccount
@@ -560,7 +560,7 @@ class CompositeClient:
         return self.validator_client.post.deposit(
             subaccount=subaccount,
             asset_id=0,
-            quantums=amount * 10 ** (- QUOTE_QUANTUMS_ATOMIC_RESOLUTION),
+            quantums=amount * 10 ** (-QUOTE_QUANTUMS_ATOMIC_RESOLUTION),
         )
     
     def withdraw_from_subaccount(
@@ -569,7 +569,7 @@ class CompositeClient:
         amount: float,
     )  -> SubmittedTx:
         '''
-        Cancel order
+        Withdraw from subaccount
 
         :param subaccount: required
         :type subaccount: Subaccount
@@ -582,5 +582,5 @@ class CompositeClient:
         return self.validator_client.post.withdraw(
             subaccount=subaccount,
             asset_id=0,
-            quantums=amount * 10 ** (- QUOTE_QUANTUMS_ATOMIC_RESOLUTION),
+            quantums=amount * 10 ** (-QUOTE_QUANTUMS_ATOMIC_RESOLUTION),
         )
