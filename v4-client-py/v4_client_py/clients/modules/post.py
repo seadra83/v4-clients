@@ -82,6 +82,9 @@ class Post:
 
         :param subaccount: required
         :type subaccount: Subaccount
+        
+        :param client_id: required
+        :type client_id: int
 
         :param clob_pair_id: required
         :type clob_pair_id: int
@@ -94,6 +97,15 @@ class Post:
 
         :param subticks: required
         :type subticks: int
+        
+        :param time_in_force: required
+        :type time_in_force: int
+        
+        :param order_flags: required
+        :type order_flags: int
+        
+        :param reduce_only: required
+        :type reduce_only: bool
 
         :param good_til_block: required
         :type good_til_block: int
@@ -101,17 +113,8 @@ class Post:
         :param good_til_block_time: required
         :type good_til_block_time: int
 
-        :param client_id: required
-        :type client_id: int
-
-        :param time_in_force: required
-        :type time_in_force: int
-
-        :param order_flags: required
-        :type order_flags: int
-
-        :param reduce_only: required
-        :type reduce_only: bool
+        :param broadcast_mode: optional
+        :type broadcast_mode: BroadcastMode
 
         :returns: Tx information
         '''
@@ -147,19 +150,33 @@ class Post:
         place_order: any,
         broadcast_mode: BroadcastMode=None,
     ) -> SubmittedTx:
+        '''
+        Place order object
+        
+        :param subaccount: required
+        :type subaccount: Subaccount
+
+        :param place_order: required
+        :type place_order: any
+
+        :param broadcast_mode: optional
+        :type broadcast_mode: BroadcastMode
+
+        :returns: Tx information
+        '''
         return self.place_order(
             subaccount,
-            place_order["client_id"],
-            place_order["clob_pair_id"],
+            place_order["clientId"],
+            place_order["clobPairId"],
             place_order["side"],
             place_order["quantums"],
             place_order["subticks"],
-            place_order["time_in_force"],
-            place_order["order_flags"],
-            place_order["reduce_only"],
-            place_order.get("good_til_block", 0),
-            place_order.get("good_til_block_time", 0),
-            place_order.get("client_metadata", 0),
+            place_order["timeInForce"],
+            place_order["orderFlags"],
+            place_order["reduceOnly"],
+            place_order.get("goodTilBlock", 0),
+            place_order.get("goodTilBlockTime", 0),
+            place_order.get("clientMetadata", 0),
             broadcast_mode,
         )
 
@@ -188,10 +205,10 @@ class Post:
         :param order_flags: required
         :type order_flags: int
 
-        :param good_til_block: optional
+        :param good_til_block: required
         :type good_til_block: int
 
-        :param good_til_block_time: optional
+        :param good_til_block_time: required
         :type good_til_block_time: int
 
         :param broadcast_mode: optional
@@ -216,13 +233,27 @@ class Post:
         cancel_order: any,
         broadcast_mode: BroadcastMode=None,
     ) -> SubmittedTx:
+        '''
+        Cancel order object
+
+        :param subaccount: required
+        :type subaccount: Subaccount
+
+        :param cancel_order: required
+        :type cancel_order: any
+
+        :param broadcast_mode: optional
+        :type broadcast_mode: BroadcastMode
+
+        returns: Tx information
+        '''
         return self.cancel_order(
             subaccount,
-            cancel_order['client_id'],
-            cancel_order['clob_pair_id'],
-            cancel_order['order_flags'],
-            cancel_order.get('good_til_block', 0),
-            cancel_order.get('good_til_block_time', 0),
+            cancel_order['clientId'],
+            cancel_order['clobPairId'],
+            cancel_order['orderFlags'],
+            cancel_order.get('goodTilBlock', 0),
+            cancel_order.get('goodTilBlockTime', 0),
             broadcast_mode=broadcast_mode,
         )
         
@@ -235,6 +266,29 @@ class Post:
         amount: int,
         broadcast_mode: BroadcastMode=None,
     ) -> SubmittedTx:
+        '''
+        Transfer
+
+        :param subaccount: required
+        :type subaccount: Subaccount
+
+        :param recipient_address: required
+        :type recipient_address: str
+
+        :param recipient_subaccount_number: required
+        :type recipient_subaccount_number: int
+
+        :param asset_id: required
+        :type asset_id: int
+
+        :param amount: required
+        :type amount: int
+
+        :param broadcast_mode: optional
+        :typw broadcast_mode: BroadcastMode
+
+        :returns: Tx information
+        '''
         msg = self.composer.compose_msg_transfer(
             subaccount.address,
             subaccount.subaccount_number,
@@ -253,6 +307,23 @@ class Post:
         quantums: int,
         broadcast_mode: BroadcastMode=None,
     ) -> SubmittedTx:
+        '''
+        Deposit
+
+        :param subaccount: required
+        :type subaccount: Subaccount
+
+        :param asset_id: required
+        :type asset_id: int
+
+        :param quantums: required
+        :type quantums: int
+
+        :param broadcast_mode: optional
+        :typw broadcast_mode: BroadcastMode
+
+        :returns: Tx information
+        '''
         msg = self.composer.compose_msg_deposit_to_subaccount(
             subaccount.address,
             subaccount.subaccount_number,
@@ -269,6 +340,23 @@ class Post:
         quantums: int,
         broadcast_mode: BroadcastMode=None,
     ) -> SubmittedTx:
+        '''
+        Withdraw
+
+        :param subaccount: required
+        :type subaccount: Subaccount
+
+        :param asset_id: required
+        :type asset_id: int
+
+        :param quantums: required
+        :type quantums: int
+
+        :param broadcast_mode: optional
+        :typw broadcast_mode: BroadcastMode
+
+        :returns: Tx information
+        '''
         msg = self.composer.compose_msg_withdraw_from_subaccount(
             subaccount.address,
             subaccount.subaccount_number,
