@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 import grpc
 
 from datetime import datetime, timedelta
@@ -87,7 +87,7 @@ class CompositeClient:
     def place_order(
         self,
         subaccount: Subaccount,
-        market: str,
+        market: Union[str, dict],
         type: OrderType,
         side: OrderSide,
         price: float,
@@ -163,7 +163,7 @@ class CompositeClient:
     def place_short_term_order(
         self,
         subaccount: Subaccount,
-        market: str,
+        market: Union[str, dict],
         side: OrderSide,
         price: float,
         size: float,
@@ -289,7 +289,7 @@ class CompositeClient:
     def place_order_message(
         self,
         subaccount: Subaccount,
-        market: str,
+        market: Union[str, dict],
         type: OrderType,
         side: OrderSide,
         price: float,
@@ -303,8 +303,9 @@ class CompositeClient:
         reduce_only: bool,
         trigger_price: float = None,
     ) -> MsgPlaceOrder:
-        markets_response = self.indexer_client.markets.get_perpetual_markets(market)
-        market = markets_response.data['markets'][market]
+        if type(market) is str:
+            markets_response = self.indexer_client.markets.get_perpetual_markets(market)
+            market = markets_response.data['markets'][market]
         clob_pair_id = market['clobPairId']
         atomic_resolution = market['atomicResolution']
         step_base_quantums = market['stepBaseQuantums']
@@ -350,7 +351,7 @@ class CompositeClient:
     def place_short_term_order_message(
         self,
         subaccount: Subaccount,
-        market: str,
+        market: Union[str, dict],
         type: OrderType,
         side: OrderSide,
         price: float,
@@ -364,8 +365,9 @@ class CompositeClient:
         self.validate_good_til_block(good_til_block=good_til_block)
 
         # Construct the MsgPlaceOrder.
-        markets_response = self.indexer_client.markets.get_perpetual_markets(market)
-        market = markets_response.data['markets'][market]
+        if type(market) is str:
+            markets_response = self.indexer_client.markets.get_perpetual_markets(market)
+            market = markets_response.data['markets'][market]
         clob_pair_id = market['clobPairId']
         atomic_resolution = market['atomicResolution']
         step_base_quantums = market['stepBaseQuantums']

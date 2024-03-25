@@ -116,11 +116,9 @@ class Post:
         :returns: Tx information
         '''
         # prepare tx msg
-        subaccount_number = subaccount.subaccount_number
-
         msg = self.composer.compose_msg_place_order(
             address=subaccount.address,
-            subaccount_number=subaccount_number, 
+            subaccount_number=subaccount.subaccount_number, 
             client_id=client_id, 
             clob_pair_id=clob_pair_id, 
             order_flags=order_flags, 
