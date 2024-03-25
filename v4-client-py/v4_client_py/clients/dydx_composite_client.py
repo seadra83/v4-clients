@@ -400,7 +400,7 @@ class CompositeClient:
         self, 
         subaccount: Subaccount,
         client_id: int,
-        market: str,
+        market: Union[str, dict],
         order_flags: int,
         good_til_time_in_seconds: int,
         good_til_block: int,
@@ -444,7 +444,7 @@ class CompositeClient:
         self,
         subaccount: Subaccount,
         client_id: int,
-        market: str,
+        market: Union[str, dict],
         good_til_block: int,
     )  -> SubmittedTx:
         '''
@@ -479,7 +479,7 @@ class CompositeClient:
     def cancel_order_message(
         self,
         subaccount: Subaccount,
-        market: str,
+        market: Union[str, dict],
         client_id: int,
         order_flags: int,
         good_til_time_in_seconds: int,
@@ -490,8 +490,9 @@ class CompositeClient:
             self.validate_good_til_block(good_til_block)
 
         # Construct the MsgPlaceOrder.
-        markets_response = self.indexer_client.markets.get_perpetual_markets(market)
-        market = markets_response.data['markets'][market]
+        if type(market) is str:
+            markets_response = self.indexer_client.markets.get_perpetual_markets(market)
+            market = markets_response.data['markets'][market]
         clob_pair_id = market['clobPairId']
 
         good_til_block, good_til_block_time = self.generate_good_til_fields(
