@@ -4,8 +4,6 @@ import random
 
 from datetime import datetime
 
-import dateutil.parser as dp
-
 
 def generate_query_path(url, params):
     entries = params.items()
@@ -36,7 +34,7 @@ def generate_now_iso():
 
 
 def iso_to_epoch_seconds(iso):
-    return dp.parse(iso).timestamp()
+    return datetime.fromisoformat(iso).timestamp()
 
 
 def epoch_seconds_to_iso(epoch):
