@@ -4,6 +4,7 @@ from v4_proto.dydxprotocol.clob.tx_pb2 import MsgPlaceOrder
 from v4_proto.dydxprotocol.clob.order_pb2 import Order
 
 from v4_client_py.clients.helpers.chain_helpers import ORDER_FLAGS_LONG_TERM, ORDER_FLAGS_SHORT_TERM
+from v4_client_py.clients.helpers.request_helpers import iso_to_epoch_seconds 
 
 from ..constants import BroadcastMode, ValidatorConfig
 from ..composer import Composer
@@ -247,13 +248,21 @@ class Post:
 
         returns: Tx information
         '''
+        client_id = int(cancel_order['clientId'])
+        clob_paira_id = int(cancel_order['clobPairId'])
+        order_flags = int(cancel_order['orderFlags'])
+        good_til_block = int(cancel_order.get('goodTilBlock', 0))
+        good_til_block_time = cancel_order.get('goodTilBlockTime', 0)
+        if good_til_block_time != 0:
+            good_til_block_time = int(iso_to_epoch_seconds(good_til_block_time))
+
         return self.cancel_order(
             subaccount,
-            cancel_order['clientId'],
-            cancel_order['clobPairId'],
-            cancel_order['orderFlags'],
-            cancel_order.get('goodTilBlock', 0),
-            cancel_order.get('goodTilBlockTime', 0),
+            client_id,
+            clobPair_id,
+            order_flags,
+            good_til_block,
+            good_til_block_time,
             broadcast_mode=broadcast_mode,
         )
         
