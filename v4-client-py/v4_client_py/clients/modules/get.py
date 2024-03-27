@@ -76,7 +76,7 @@ from v4_proto.dydxprotocol.clob import (
 )  
 
 
-DEFAULT_TIMEOUTHEIGHT = 30  # blocks
+DEFAULT_TIMEOUT_HEIGHT = 30  # blocks
 
 class Get:
     def __init__(
@@ -116,11 +116,19 @@ class Get:
         return self.stubCosmosTendermint.GetLatestBlock(
             tendermint_query.GetLatestBlockRequest()
         )
-    
+
+    def latest_block_height(self) -> int:
+        '''
+        Get latest block height
+
+        :returns: Latest block height
+        '''
+        return self.latest_block().block.header.height
+
     def sync_timeout_height(self):
         try:
             block = self.latest_block()
-            self.timeout_height = block.block.header.height + DEFAULT_TIMEOUTHEIGHT
+            self.timeout_height = block.block.header.height + DEFAULT_TIMEOUT_HEIGHT
         except Exception as e:
             logging.debug("error while fetching latest block, setting timeout height to 0:{}".format(e))
             self.timeout_height = 0
