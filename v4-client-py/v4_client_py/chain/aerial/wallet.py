@@ -114,6 +114,7 @@ class LocalWallet(Wallet):
         :param prefix: prefix, defaults to None
         """
         self._private_key = private_key
+        self._public_key = private_key.public_key
         self._prefix = prefix
 
     def address(self) -> Address:
@@ -128,7 +129,7 @@ class LocalWallet(Wallet):
 
         :return: public key
         """
-        return self._private_key
+        return self._public_key
 
     def signer(self) -> PrivateKey:
         """Get  the signer of the wallet.
