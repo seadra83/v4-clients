@@ -1,10 +1,11 @@
 from google.protobuf import message as _message
-
 from v4_proto.dydxprotocol.clob.tx_pb2 import MsgPlaceOrder
 from v4_proto.dydxprotocol.clob.order_pb2 import Order
-
-from v4_client_py.clients.helpers.chain_helpers import ORDER_FLAGS_LONG_TERM, ORDER_FLAGS_SHORT_TERM
-from v4_client_py.clients.helpers.request_helpers import iso_to_epoch_seconds 
+from v4_client_py.clients.helpers.chain_helpers import (
+    ORDER_FLAGS_SHORT_TERM,
+    ORDER_FLAGS_LONG_TERM,
+)
+from v4_client_py.clients.helpers.request_helpers import iso_to_epoch_seconds
 
 from ..constants import BroadcastMode, ValidatorConfig
 from ..composer import Composer
@@ -12,8 +13,9 @@ from ..dydx_subaccount import Subaccount
 
 from ...chain.aerial.tx import Transaction
 from ...chain.aerial.tx_helpers import SubmittedTx
-from ...chain.aerial.client import LedgerClient, NetworkConfig
+from ...chain.aerial.client import LedgerClient
 from ...chain.aerial.client.utils import prepare_and_broadcast_basic_transaction
+
 
 class Post:
     def __init__(
@@ -30,7 +32,6 @@ class Post:
         zeroFee: bool = False,
         broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
-        
         '''
         Send a message
 
@@ -51,15 +52,15 @@ class Post:
         gas_limit = 0 if zeroFee else None
 
         return prepare_and_broadcast_basic_transaction(
-            client=ledger, 
-            tx=tx, 
-            sender=wallet, 
+            client=ledger,
+            tx=tx,
+            sender=wallet,
             gas_limit=gas_limit,
             memo=None,
-            broadcast_mode=broadcast_mode if (broadcast_mode != None) else self.default_broadcast_mode(msg),
+            broadcast_mode=broadcast_mode if (broadcast_mode is not None) else self.default_broadcast_mode(msg),
             fee=0 if zeroFee else None,
-            )
-    
+        )
+
     def place_order(
         self,
         subaccount: Subaccount,
@@ -74,16 +75,16 @@ class Post:
         good_til_block: int,
         good_til_block_time: int,
         client_metadata: int,
-        condition_type: Order.ConditionType=Order.ConditionType.CONDITION_TYPE_UNSPECIFIED,
-        conditional_order_trigger_subticks: int=0,
-        broadcast_mode: BroadcastMode=None,
+        condition_type: Order.ConditionType = Order.ConditionType.CONDITION_TYPE_UNSPECIFIED,
+        conditional_order_trigger_subticks: int = 0,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Place order
 
         :param subaccount: required
         :type subaccount: Subaccount
-        
+
         :param client_id: required
         :type client_id: int
 
@@ -98,13 +99,13 @@ class Post:
 
         :param subticks: required
         :type subticks: int
-        
+
         :param time_in_force: required
         :type time_in_force: int
-        
+
         :param order_flags: required
         :type order_flags: int
-        
+
         :param reduce_only: required
         :type reduce_only: bool
 
@@ -122,38 +123,37 @@ class Post:
         # prepare tx msg
         msg = self.composer.compose_msg_place_order(
             address=subaccount.address,
-            subaccount_number=subaccount.subaccount_number, 
-            client_id=client_id, 
-            clob_pair_id=clob_pair_id, 
-            order_flags=order_flags, 
-            good_til_block=good_til_block, 
-            good_til_block_time=good_til_block_time, 
-            side=side, 
-            quantums=quantums, 
-            subticks=subticks, 
-            time_in_force=time_in_force, 
+            subaccount_number=subaccount.subaccount_number,
+            client_id=client_id,
+            clob_pair_id=clob_pair_id,
+            order_flags=order_flags,
+            good_til_block=good_til_block,
+            good_til_block_time=good_til_block_time,
+            side=side,
+            quantums=quantums,
+            subticks=subticks,
+            time_in_force=time_in_force,
             reduce_only=reduce_only,
             client_metadata=client_metadata,
             condition_type=condition_type,
             conditional_order_trigger_subticks=conditional_order_trigger_subticks,
-            )
+        )
         return self.send_message(
-            subaccount=subaccount, 
-            msg=msg, 
-            zeroFee=True, 
+            subaccount=subaccount,
+            msg=msg,
+            zeroFee=True,
             broadcast_mode=broadcast_mode
         )
-    
 
     def place_order_object(
         self,
         subaccount: Subaccount,
         place_order: any,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Place order object
-        
+
         :param subaccount: required
         :type subaccount: Subaccount
 
@@ -189,7 +189,7 @@ class Post:
         order_flags: int,
         good_til_block: int,
         good_til_block_time: int,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Cancel order
@@ -218,21 +218,21 @@ class Post:
         :returns: Tx information
         '''
         msg = self.composer.compose_msg_cancel_order(
-            subaccount.address, 
+            subaccount.address,
             subaccount.subaccount_number,
             client_id,
             clob_pair_id,
             order_flags,
             good_til_block,
             good_til_block_time,
-            )
+        )
         return self.send_message(subaccount, msg, zeroFee=True, broadcast_mode=broadcast_mode)
-        
+
     def cancel_order_object(
         self,
         subaccount: Subaccount,
         cancel_order: any,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Cancel order object
@@ -249,7 +249,7 @@ class Post:
         returns: Tx information
         '''
         client_id = int(cancel_order['clientId'])
-        clob_paira_id = int(cancel_order['clobPairId'])
+        clob_pair_id = int(cancel_order['clobPairId'])
         order_flags = int(cancel_order['orderFlags'])
         good_til_block = int(cancel_order.get('goodTilBlock', 0))
         good_til_block_time = cancel_order.get('goodTilBlockTime', 0)
@@ -259,13 +259,13 @@ class Post:
         return self.cancel_order(
             subaccount,
             client_id,
-            clobPair_id,
+            clob_pair_id,
             order_flags,
             good_til_block,
             good_til_block_time,
             broadcast_mode=broadcast_mode,
         )
-        
+
     def transfer(
         self,
         subaccount: Subaccount,
@@ -273,7 +273,7 @@ class Post:
         recipient_subaccount_number: int,
         asset_id: int,
         amount: int,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Transfer
@@ -308,13 +308,12 @@ class Post:
         )
         return self.send_message(subaccount, msg, broadcast_mode=broadcast_mode)
 
-
     def deposit(
         self,
         subaccount: Subaccount,
         asset_id: int,
         quantums: int,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Deposit
@@ -341,13 +340,12 @@ class Post:
         )
         return self.send_message(subaccount, msg, broadcast_mode=broadcast_mode)
 
-
     def withdraw(
         self,
         subaccount: Subaccount,
         asset_id: int,
         quantums: int,
-        broadcast_mode: BroadcastMode=None,
+        broadcast_mode: BroadcastMode = None,
     ) -> SubmittedTx:
         '''
         Withdraw
@@ -373,7 +371,7 @@ class Post:
             quantums,
         )
         return self.send_message(subaccount, msg, broadcast_mode=broadcast_mode)
-    
+
     def default_broadcast_mode(self, msg: _message.Message) -> BroadcastMode:
         if isinstance(msg, MsgPlaceOrder):
             order_flags = msg.order.order_id.order_flags
