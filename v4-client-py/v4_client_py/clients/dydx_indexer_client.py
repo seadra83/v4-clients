@@ -3,6 +3,7 @@ from .modules.account import Account
 from .modules.markets import Markets
 from .modules.utility import Utility
 
+
 class IndexerClient(object):
     def __init__(
         self,
