@@ -53,7 +53,7 @@ class CompositeClient:
             )
 
     def calculate_good_til_block(self, current_height: int) -> int:
-        if not current_height:
+        if current_height is None:
             current_height = self.validator_client.get.latest_block_height()
 
         return current_height + SHORT_BLOCK_FORWARD
@@ -97,9 +97,9 @@ class CompositeClient:
         good_til_time_in_seconds: int,
         post_only: bool,
         reduce_only: bool,
-        trigger_price: float = 0.,
+        trigger_price: Optional[float] = None,
         market_info: Optional[dict] = None,
-        current_height: int = 0,
+        current_height: Optional[int] = None,
     ) -> SubmittedTx:
         '''
         Place order
@@ -142,7 +142,7 @@ class CompositeClient:
 
         :param market_info: optional
         :type market_info: dict
-
+k
         :param current_height: optional
         :type current_height: int
 
@@ -152,7 +152,7 @@ class CompositeClient:
             markets_response = self.indexer_client.markets.get_perpetual_markets(market)
             market_info = markets_response.data['markets'][market]
 
-        clob_pair_id = market_info['clobPairId']
+        clob_pair_id = int(market_info['clobPairId'])
         atomic_resolution = market_info['atomicResolution']
         step_base_quantums = market_info['stepBaseQuantums']
         quantum_conversion_exponent = market_info['quantumConversionExponent']
@@ -199,11 +199,10 @@ class CompositeClient:
         self,
         subaccount: Subaccount,
         client_id: int,
-        market: str,
+        clob_pair_id: int,
         order_flags: int,
         good_til_block: int,
         good_til_block_time: int,
-        market_info: Optional[dict] = None,
     ) -> SubmittedTx:
         '''
         Cancel order
@@ -214,8 +213,8 @@ class CompositeClient:
         :param client_id: required
         :type client_id: int
 
-        :param market: required
-        :type market: str
+        :param clob_pair_id: required
+        :type clob_pair_id: int
 
         :param order_flags: required
         :type order_flags: int
@@ -226,17 +225,8 @@ class CompositeClient:
         :param good_til_time_in_seconds: required
         :type good_til_time_in_seconds: int
 
-        :param market_info: optional
-        :typw market_info: dict
-
         :returns: Tx information
         '''
-        if not market_info:
-            markets_response = self.indexer_client.markets.get_perpetual_markets(market)
-            market_info = markets_response.data['markets'][market]
-
-        clob_pair_id = market_info['clobPairId']
-
         return self.validator_cliient.post.cancel_order(
             subaccount,
             client_id,
