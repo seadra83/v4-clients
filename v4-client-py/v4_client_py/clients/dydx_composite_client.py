@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 
-import grpc
+import grpc  # type: ignore
 from v4_client_py.clients.helpers.chain_helpers import (
     OrderSide,
     OrderTimeInForce,
@@ -46,13 +46,13 @@ class CompositeClient:
         upper_bound = next_valid_block_height + SHORT_BLOCK_WINDOW
         if good_til_block < lower_bound or good_til_block > upper_bound:
             raise Exception(
-                f"Invalid Short-Term order GoodTilBlock. "
-                f"Should be greater-than-or-equal-to {lower_bound} "
-                f"and less-than-or-equal-to {upper_bound}. "
+                f"Invalid Short-Term order GoodTilBlock."
+                f"Should be greater-than-or-equal-to {lower_bound}"
+                f"and less-than-or-equal-to {upper_bound}."
                 f"Provided GoodTilBlock: {good_til_block}"
             )
 
-    def calculate_good_til_block(self, current_height: int) -> int:
+    def calculate_good_til_block(self, current_height: Optional[int]) -> int:
         if current_height is None:
             current_height = self.validator_client.get.latest_block_height()
 
@@ -72,7 +72,7 @@ class CompositeClient:
     def generate_good_til_fields(
         self,
         order_flags: int,
-        current_height: int,
+        current_height: Optional[int],
         good_til_time_in_seconds: int,
     ) -> Tuple[int, int]:
         is_stateful_order = is_order_flag_stateful_order(order_flags)
@@ -97,7 +97,7 @@ class CompositeClient:
         good_til_time_in_seconds: int,
         post_only: bool,
         reduce_only: bool,
-        trigger_price: Optional[float] = None,
+        trigger_price: float = .0,
         market_info: Optional[dict] = None,
         current_height: Optional[int] = None,
     ) -> SubmittedTx:
@@ -142,13 +142,13 @@ class CompositeClient:
 
         :param market_info: optional
         :type market_info: dict
-k
+
         :param current_height: optional
         :type current_height: int
 
         :returns: Tx information
         '''
-        if not market_info:
+        if market_info is None:
             markets_response = self.indexer_client.markets.get_perpetual_markets(market)
             market_info = markets_response.data['markets'][market]
 
@@ -227,7 +227,7 @@ k
 
         :returns: Tx information
         '''
-        return self.validator_cliient.post.cancel_order(
+        return self.validator_client.post.cancel_order(
             subaccount,
             client_id,
             clob_pair_id,

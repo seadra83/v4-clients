@@ -1,3 +1,5 @@
+from typing import Optional
+
 from google.protobuf import message as _message
 from v4_proto.dydxprotocol.clob.tx_pb2 import MsgPlaceOrder
 from v4_proto.dydxprotocol.clob.order_pb2 import Order
@@ -30,7 +32,7 @@ class Post:
         subaccount: Subaccount,
         msg: _message.Message,
         zeroFee: bool = False,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Send a message
@@ -57,7 +59,7 @@ class Post:
             sender=wallet,
             gas_limit=gas_limit,
             memo=None,
-            broadcast_mode=broadcast_mode if (broadcast_mode is not None) else self.default_broadcast_mode(msg),
+            broadcast_mode=broadcast_mode if broadcast_mode is not None else self.default_broadcast_mode(msg),
             fee=0 if zeroFee else None,
         )
 
@@ -77,7 +79,7 @@ class Post:
         client_metadata: int,
         condition_type: Order.ConditionType = Order.ConditionType.CONDITION_TYPE_UNSPECIFIED,
         conditional_order_trigger_subticks: int = 0,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Place order
@@ -149,7 +151,7 @@ class Post:
         self,
         subaccount: Subaccount,
         place_order: any,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Place order object
@@ -189,7 +191,7 @@ class Post:
         order_flags: int,
         good_til_block: int,
         good_til_block_time: int,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Cancel order
@@ -232,7 +234,7 @@ class Post:
         self,
         subaccount: Subaccount,
         cancel_order: any,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Cancel order object
@@ -273,7 +275,7 @@ class Post:
         recipient_subaccount_number: int,
         asset_id: int,
         amount: int,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Transfer
@@ -313,7 +315,7 @@ class Post:
         subaccount: Subaccount,
         asset_id: int,
         quantums: int,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Deposit
@@ -345,7 +347,7 @@ class Post:
         subaccount: Subaccount,
         asset_id: int,
         quantums: int,
-        broadcast_mode: BroadcastMode = None,
+        broadcast_mode: Optional[BroadcastMode] = None,
     ) -> SubmittedTx:
         '''
         Withdraw
