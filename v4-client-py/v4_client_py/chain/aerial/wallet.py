@@ -122,7 +122,7 @@ class LocalWallet(Wallet):
 
         :return: Wallet address.
         """
-        return Address(self._private_key, self._prefix)
+        return Address(self._public_key, self._prefix)
 
     def public_key(self) -> PublicKey:
         """Get the public key of the wallet.
