@@ -4,17 +4,21 @@ from ..chain.aerial.config import NetworkConfig
 
 
 # ------------ API URLs ------------
+INDEXER_API_HOST_LOCALNET = 'http://localhost:3002'
 INDEXER_API_HOST_MAINNET = 'https://indexer.dydx.trade'
 INDEXER_API_HOST_TESTNET = 'https://indexer.v4testnet.dydx.exchange'
 
+INDEXER_WS_HOST_LOCALNET = 'ws://localhost:3003/v4/ws'
 INDEXER_WS_HOST_MAINNET = 'wss://indexer.dydx.trade/v4/ws'
 INDEXER_WS_HOST_TESTNET = 'wss://indexer.v4testnet.dydx.exchange/v4/ws'
 
 FAUCET_API_HOST_TESTNET = 'https://faucet.v4testnet.dydx.exchange'
 
+VALIDATOR_API_HOST_LOCALNET = 'http://localhost:1317'
 VALIDATOR_API_HOST_MAINNET = 'https://dydx-ops-rest.kingnodes.com'
 VALIDATOR_API_HOST_TESTNET = 'https://test-dydx.kingnodes.com'
 
+VALIDATOR_GRPC_LOCALNET = 'localhost:9090'
 VALIDATOR_GRPC_MAINNET = 'dydx-ops-grpc.kingnodes.com:443'
 VALIDATOR_GRPC_TESTNET = 'test-dydx-grpc.kingnodes.com:443'
 
@@ -167,6 +171,32 @@ class Network:
             validator_config=validator_config,
             indexer_config=indexer_config,
             faucet_endpoint=FAUCET_API_HOST_TESTNET,
+        )
+
+    @classmethod
+    def localnet(cls):
+        validator_config = ValidatorConfig(
+            grpc_endpoint=VALIDATOR_GRPC_LOCALNET,
+            chain_id=NETWORK_ID_MAINNET,
+            ssl_enabled=False,
+            network_config=NetworkConfig(
+                chain_id=NETWORK_ID_MAINNET,
+                url='grpc+http://' + VALIDATOR_GRPC_LOCALNET,
+                fee_minimum_gas_price=FEE_MINIMUM_MAINNET,
+                fee_denomination=FEE_DENOM_MAINNET,
+                staking_denomination=STAKE_DENOM_MAINNET,
+                faucet_url=None,
+            ),
+        )
+        indexer_config = IndexerConfig(
+            rest_endpoint=INDEXER_API_HOST_LOCALNET,
+            websocket_endpoint=INDEXER_WS_HOST_LOCALNET,
+        )
+        return cls(
+            env='localnet',
+            validator_config=validator_config,
+            indexer_config=indexer_config,
+            faucet_endpoint=None,
         )
 
     @classmethod
