@@ -1,24 +1,25 @@
-
+from typing import Optional
 from ..helpers.request_helpers import generate_query_path
 from ..helpers.requests import request, Response
 from ..constants import DEFAULT_API_TIMEOUT
+
 
 class Account(object):
     def __init__(
         self,
         indexerHost,
-        api_timeout = None,
+        api_timeout=None,
     ):
         self.host = indexerHost
         self.api_timeout = api_timeout or DEFAULT_API_TIMEOUT
 
     # ============ Request Helpers ============
 
-    def _get(self, request_path, params = {}) -> Response:
+    def _get(self, request_path, params: dict = {}) -> Response:
         return request(
             generate_query_path(self.host + request_path, params),
             'get',
-            api_timeout = self.api_timeout,
+            api_timeout=self.api_timeout,
         )
 
     # ============ Requests ============
@@ -26,7 +27,7 @@ class Account(object):
     def get_subaccounts(
         self,
         address: str,
-        limit: int = None,
+        limit: Optional[int] = None,
     ) -> Response:
         '''
         Get subaccounts
@@ -75,10 +76,10 @@ class Account(object):
         self,
         address: str,
         subaccount_number: int,
-        status: str = None,
-        limit: int = None,
-        created_before_or_at_height: int = None,
-        created_before_or_at_time: str = None,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        created_before_or_at_height: Optional[int] = None,
+        created_before_or_at_time: Optional[str] = None,
     ) -> Response:
         '''
         Get perpetual positions
@@ -126,10 +127,10 @@ class Account(object):
         self,
         address: str,
         subaccount_number: int,
-        status: str = None,
-        limit: int = None,
-        created_before_or_at_height: int = None,
-        created_before_or_at_time: str = None,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        created_before_or_at_height: Optional[int] = None,
+        created_before_or_at_time: Optional[str] = None,
     ) -> Response:
         '''
         Get asset positions
@@ -172,14 +173,14 @@ class Account(object):
                 'createdBeforeOrAt': created_before_or_at_time,
             },
         )
-    
+
     def get_subaccount_transfers(
         self,
         address: str,
         subaccount_number: int,
-        limit: int = None,
-        created_before_or_at_height: int = None,
-        created_before_or_at_time: str = None,
+        limit: Optional[int] = None,
+        created_before_or_at_height: Optional[int] = None,
+        created_before_or_at_time: Optional[str] = None,
     ) -> Response:
         '''
         Get asset transfers record
@@ -213,20 +214,20 @@ class Account(object):
                 'createdBeforeOrAt': created_before_or_at_time,
             },
         )
-    
+
     def get_subaccount_orders(
         self,
         address: str,
         subaccount_number: int,
-        ticker: str = None,
+        ticker: Optional[str] = None,
         ticker_type: str = 'PERPETUAL',
-        side: str = None,
-        status: str = None,
-        type: str = None,
-        limit: int = None,
-        good_til_block_before_or_at: int = None,
-        good_til_block_time_before_or_at: str = None,
-        return_latest_orders: bool = None
+        side: Optional[str] = None,
+        status: Optional[str] = None,
+        type: Optional[str] = None,
+        limit: Optional[int] = None,
+        good_til_block_before_or_at: Optional[int] = None,
+        good_til_block_time_before_or_at: Optional[str] = None,
+        return_latest_orders: Optional[bool] = None
     ) -> Response:
         '''
         Get asset transfers record
@@ -301,7 +302,7 @@ class Account(object):
                 'returnLatestOrders': return_latest_orders,
             },
         )
-    
+
     def get_order(
         self,
         order_id: str
@@ -323,17 +324,16 @@ class Account(object):
             {
             },
         )
-    
 
     def get_subaccount_fills(
         self,
         address: str,
         subaccount_number: int,
-        ticker: str = None,
-        ticker_type: str = None,
-        limit: int = None,
-        created_before_or_at_height: int = None,
-        created_before_or_at_time: str = None,
+        ticker: Optional[str] = None,
+        ticker_type: Optional[str] = None,
+        limit: Optional[int] = None,
+        created_before_or_at_height: Optional[int] = None,
+        created_before_or_at_time: Optional[str] = None,
     ) -> Response:
         '''
         Get asset transfers record
@@ -383,13 +383,13 @@ class Account(object):
                 'createdBeforeOrAt': created_before_or_at_time,
             },
         )
-    
+
     def get_subaccount_historical_pnls(
         self,
         address: str,
         subaccount_number: int,
-        effective_before_or_at: str = None,
-        effective_at_or_after: str = None,
+        effective_before_or_at: Optional[str] = None,
+        effective_at_or_after: Optional[str] = None,
     ) -> Response:
         '''
         Get asset transfers record

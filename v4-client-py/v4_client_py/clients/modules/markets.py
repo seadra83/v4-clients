@@ -1,19 +1,22 @@
+from typing import Optional, Union
+
 from ..constants import DEFAULT_API_TIMEOUT
 from ..helpers.request_helpers import generate_query_path
 from ..helpers.requests import request, Response
+
 
 class Markets(object):
     def __init__(
         self,
         indexerHost,
-        api_timeout = None,
+        api_timeout=None,
     ):
         self.host = indexerHost
         self.api_timeout = api_timeout or DEFAULT_API_TIMEOUT
 
     # ============ Request Helpers ============
 
-    def _get(self, request_path, params = {}) -> Response:
+    def _get(self, request_path, params: dict = {}) -> Response:
         return request(
             generate_query_path(self.host + request_path, params),
             'get',
@@ -22,17 +25,12 @@ class Markets(object):
 
     # ============ Requests ============
 
-    def get_perpetual_markets(self, market: str = None) -> Response:
+    def get_perpetual_markets(self, market: Optional[str] = None) -> Response:
         '''
-        Get one or perpetual markets
+        Get one or more perpetual markets
 
         :param market: optional
-        :type market: str in list [
-            "BTC-USD",
-            "ETH-USD",
-            "LINK-USD",
-            ...
-        ]
+        :type market: str
 
         :returns: Market array
 
@@ -48,12 +46,7 @@ class Markets(object):
         Get orderbook for a perpetual market
 
         :param market: required
-        :type market: str in list [
-            "BTC-USD",
-            "ETH-USD",
-            "LINK-USD",
-            ...
-        ]
+        :type market: str
 
         :returns: Object containing bid array and ask array of open orders
         for a market
@@ -64,22 +57,17 @@ class Markets(object):
         return self._get(uri)
 
     def get_perpetual_market_trades(
-        self, 
+        self,
         market: str,
-        starting_before_or_at: str = None,
-        starting_before_or_at_height: int = None, 
-        limit: int = None
+        starting_before_or_at: Optional[str] = None,
+        starting_before_or_at_height: Optional[int] = None,
+        limit: Optional[int] = None
     ) -> Response:
         '''
         Get trades for a perpetual market
 
         :param market: required
-        :type market: str in list [
-            "BTC-USD",
-            "ETH-USD",
-            "LINK-USD",
-            ...
-        ]
+        :type market: str
 
         :param starting_before_or_at: optional
         :type starting_before_or_at: ISO str
@@ -92,7 +80,7 @@ class Markets(object):
         :raises: DydxAPIError
         '''
         uri = '/'.join(['/v4/trades/perpetualMarket', market])
-        params = {'limit': limit}
+        params: dict[str, Optional[Union[int, str]]] = {'limit': limit}
         if starting_before_or_at is not None:
             params['createdBeforeOrAt'] = starting_before_or_at
         elif starting_before_or_at_height is not None:
@@ -104,20 +92,15 @@ class Markets(object):
         self,
         market: str,
         resolution: str,
-        from_iso: str = None,
-        to_iso: str = None,
-        limit: int = None,
+        from_iso: Optional[str] = None,
+        to_iso: Optional[str] = None,
+        limit: Optional[int] = None,
     ) -> Response:
         '''
         Get Candles
 
         :param market: required
-        :type market: str in list [
-            "BTC-USD",
-            "ETH-USD",
-            "LINK-USD",
-            ...
-        ]
+        :type market: str
 
         :param resolution: required
         :type resolution: str in list [
@@ -157,20 +140,15 @@ class Markets(object):
     def get_perpetual_market_funding(
         self,
         market: str,
-        effective_before_or_at: str = None,
-        effective_before_or_at_height: int = None,
-        limit: int = None,
+        effective_before_or_at: Optional[str] = None,
+        effective_before_or_at_height: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> Response:
         '''
         Get Candles
 
         :param market: required
-        :type market: str in list [
-            "BTC-USD",
-            "ETH-USD",
-            "LINK-USD",
-            ...
-        ]
+        :type market: str
 
         :param effective_before_or_at: optional
         :type effective_before_or_at: ISO str
@@ -194,7 +172,7 @@ class Markets(object):
                 'limit': limit,
             },
         )
-    
+
     def get_perpetual_markets_sparklines(
         self,
         period: str = 'ONE_DAY'

@@ -1,93 +1,71 @@
-
-import grpc
 import logging
-
 from typing import Optional
 
-from ..constants import ValidatorConfig
+import grpc  # type: ignore
 
-from v4_proto.dydxprotocol.clob.order_pb2 import *
-from v4_proto.dydxprotocol.clob.tx_pb2 import *
-from v4_proto.dydxprotocol.clob.query_pb2 import *
-
-from v4_proto.dydxprotocol.subaccounts.subaccount_pb2 import *
-from v4_proto.dydxprotocol.subaccounts.query_pb2 import *
-
-from v4_proto.dydxprotocol.sending.transfer_pb2 import *
-from v4_proto.dydxprotocol.sending.tx_pb2 import *
-
-from v4_proto.dydxprotocol.assets.genesis_pb2 import *
-from v4_proto.dydxprotocol.assets.query_pb2 import *
-from v4_proto.dydxprotocol.assets.asset_pb2 import *
-
-from v4_proto.dydxprotocol.perpetuals.query_pb2 import *
-from v4_proto.dydxprotocol.perpetuals.perpetual_pb2 import *
-
-from v4_proto.dydxprotocol.prices.query_pb2 import *
-from v4_proto.dydxprotocol.prices.market_price_pb2 import *
-
-from v4_proto.cosmos.base.tendermint.v1beta1 import (
-    query_pb2_grpc as tendermint_query_grpc,
-    query_pb2 as tendermint_query,
-)
-
-from v4_proto.cosmos.auth.v1beta1 import (
-    query_pb2_grpc as auth_query_grpc,
-    query_pb2 as auth_query,
+from v4_proto.cosmos.auth.v1beta1 import (  # type: ignore
     auth_pb2 as auth_type,
+    query_pb2 as auth_query,
+    query_pb2_grpc as auth_query_grpc,
 )
-
-from v4_proto.cosmos.authz.v1beta1 import (
+from v4_proto.cosmos.authz.v1beta1 import (  # type: ignore
     query_pb2_grpc as authz_query_grpc,
 )
-
-from v4_proto.cosmos.bank.v1beta1 import (
+from v4_proto.cosmos.bank.v1beta1 import (  # type: ignore
     query_pb2_grpc as bank_query_grpc,
     query_pb2 as bank_query,
 )
-from v4_proto.cosmos.tx.v1beta1 import (
+from v4_proto.cosmos.base.tendermint.v1beta1 import (  # type: ignore
+    query_pb2 as tendermint_query,
+    query_pb2_grpc as tendermint_query_grpc,
+)
+from v4_proto.cosmos.tx.v1beta1 import (  # type: ignore
     service_pb2_grpc as tx_service_grpc,
     service_pb2 as tx_service,
 )
-
-from v4_proto.dydxprotocol.subaccounts import (
-    query_pb2_grpc as subaccounts_query_grpc,
-    subaccount_pb2 as subaccount_type,
-)
-
-from v4_proto.dydxprotocol.assets import (
+from v4_proto.dydxprotocol.assets import (  # type: ignore
     query_pb2_grpc as assets_query_grpc,
 )
-
-from v4_proto.dydxprotocol.perpetuals import (
-    query_pb2_grpc as perpetuals_query_grpc,
-)
-
-from v4_proto.dydxprotocol.prices import (
-    query_pb2_grpc as prices_query_grpc,
-    market_price_pb2 as market_price_type,
-)
-
-from v4_proto.dydxprotocol.clob import (
+from v4_proto.dydxprotocol.clob import (  # type: ignore
     query_pb2_grpc as clob_query_grpc,
     query_pb2 as clob_query,
     clob_pair_pb2 as clob_pair_type,
     equity_tier_limit_config_pb2 as equity_tier_limit_config_type,
-)  
+)
+from v4_proto.dydxprotocol.perpetuals import (  # type: ignore
+    query_pb2_grpc as perpetuals_query_grpc,
+)
+from v4_proto.dydxprotocol.prices import (  # type: ignore
+    query_pb2 as prices_query,
+    query_pb2_grpc as prices_query_grpc,
+    market_price_pb2 as market_price_type,
+)
+from v4_proto.dydxprotocol.ratelimit import (  # type: ignore
+    query_pb2 as rate_limit_query,
+    query_pb2_grpc as rate_limit_query_grpc,
+)
+from v4_proto.dydxprotocol.subaccounts import (  # type: ignore
+    query_pb2 as subaccounts_query,
+    query_pb2_grpc as subaccounts_query_grpc,
+    subaccount_pb2 as subaccount_type,
+)
 
+
+from ..constants import ValidatorConfig
 
 DEFAULT_TIMEOUTHEIGHT = 30  # blocks
+
 
 class Get:
     def __init__(
         self,
         config: ValidatorConfig,
-        credentials = grpc.ssl_channel_credentials(),
+        credentials=grpc.ssl_channel_credentials(),
     ):
         # chain stubs
         self.chain_channel = (
-            grpc.secure_channel(config.grpc_endpoint, credentials) if config.ssl_enabled 
-                else grpc.insecure_channel(config.grpc_endpoint)
+            grpc.secure_channel(config.grpc_endpoint, credentials) if config.ssl_enabled
+            else grpc.insecure_channel(config.grpc_endpoint)
         )
         self.config = config
 
@@ -104,6 +82,7 @@ class Get:
         self.stubPerpetuals = perpetuals_query_grpc.QueryStub(self.chain_channel)
         self.stubPrices = prices_query_grpc.QueryStub(self.chain_channel)
         self.stubClob = clob_query_grpc.QueryStub(self.chain_channel)
+        self.stubRateLimit = rate_limit_query_grpc.QueryStub(self.chain_channel)
 
     # default client methods
     def latest_block(self) -> tendermint_query.GetLatestBlockResponse:
@@ -116,7 +95,7 @@ class Get:
         return self.stubCosmosTendermint.GetLatestBlock(
             tendermint_query.GetLatestBlockRequest()
         )
-    
+
     def sync_timeout_height(self):
         try:
             block = self.latest_block()
@@ -124,7 +103,7 @@ class Get:
         except Exception as e:
             logging.debug("error while fetching latest block, setting timeout height to 0:{}".format(e))
             self.timeout_height = 0
-    
+
     def tx(self, tx_hash: str):
         '''
         Get tx
@@ -180,16 +159,16 @@ class Get:
         else:
             return None
 
-    def subaccounts(self) -> QuerySubaccountAllResponse:
+    def subaccounts(self) -> subaccounts_query.QuerySubaccountAllResponse:
         '''
         Get all subaccounts
 
         :returns: Subaccount information, including account number and sequence
         '''
         return self.stubSubaccounts.SubaccountAll(
-            QueryAllSubaccountRequest()
+            subaccounts_query.QueryAllSubaccountRequest()
         )
-    
+
     def subaccount(self, address: str, account_number: int) -> Optional[subaccount_type.Subaccount]:
         '''
         Get subaccount information
@@ -200,19 +179,22 @@ class Get:
         :returns: Subaccount information, including account number and sequence
         '''
         return self.stubSubaccounts.Subaccount(
-            QueryGetSubaccountRequest(owner=address, number=account_number)
+            subaccounts_query.QueryGetSubaccountRequest(
+                owner=address,
+                number=account_number,
+            )
         ).subaccount
 
-    def clob_pairs(self) -> QueryClobPairAllResponse:
+    def clob_pairs(self) -> clob_query.QueryClobPairAllResponse:
         '''
         Get all pairs
 
         :returns: All pairs
         '''
         return self.stubClob.ClobPairAll(
-            QueryAllClobPairRequest()
+            clob_query.QueryAllClobPairRequest()
         )
-    
+
     def clob_pair(self, pair_id: int) -> clob_pair_type.ClobPair:
         '''
         Get pair information
@@ -225,17 +207,17 @@ class Get:
         return self.stubClob.ClobPair(
             clob_query.QueryGetClobPairRequest(id=pair_id)
         ).clob_pair
-    
-    def prices(self) -> QueryAllMarketPricesResponse:
+
+    def prices(self) -> prices_query.QueryAllMarketPricesResponse:
         '''
         Get all market prices
 
         :returns: All market prices
         '''
         return self.stubPrices.AllMarketPrices(
-            QueryAllMarketPricesRequest()
+            prices_query.QueryAllMarketPricesRequest()
         )
-    
+
     def price(self, market_id: int) -> market_price_type.MarketPrice:
         '''
         Get market price
@@ -246,7 +228,7 @@ class Get:
         :returns: Market price
         '''
         return self.stubPrices.MarketPrice(
-            QueryMarketPriceRequest(id=market_id)
+            prices_query.QueryMarketPriceRequest(id=market_id)
         ).market_price
 
     def equity_tier_limit_config(self) -> equity_tier_limit_config_type.EquityTierLimitConfiguration:
@@ -258,3 +240,28 @@ class Get:
         return self.stubClob.EquityTierLimitConfiguration(
             clob_query.QueryEquityTierLimitConfigurationRequest()
         ).equity_tier_limit_config
+
+    def withdrawal_and_transfers_blocked_info(self) -> subaccounts_query.QueryGetWithdrawalAndTransfersBlockedInfoResponse:
+        '''
+        Get withdrawal and transfers blocked info
+
+        :returns: Withdrawal and transfers blocked info
+        :rtype: QueryGetWithdrawalAndTransfersBlockedInfoResponse
+        '''
+        return self.stubSubaccounts.GetWithdrawalAndTransfersBlockedInfo(
+            subaccounts_query.QueryGetWithdrawalAndTransfersBlockedInfoRequest()
+        )
+
+    def withdrawal_capacity_by_denom(self, denom: str) -> rate_limit_query.QueryCapacityByDenomResponse:
+        '''
+        Get withdrawal capacity by denom
+
+        :param denom: required
+        :type denom: str
+
+        :returns: Withdrawal capacity by denom
+        :rtype: QueryCapacityByDenomResponse
+        '''
+        return self.stubRateLimit.CapacityByDenom(
+            rate_limit_query.QueryCapacityByDenomRequest(denom=denom)
+        )

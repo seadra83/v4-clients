@@ -2,18 +2,19 @@ from ..constants import DEFAULT_API_TIMEOUT
 from ..helpers.request_helpers import generate_query_path
 from ..helpers.requests import request, Response
 
+
 class Utility(object):
     def __init__(
         self,
         indexerHost,
-        api_timeout = None,
+        api_timeout=None,
     ):
         self.host = indexerHost
         self.api_timeout = api_timeout or DEFAULT_API_TIMEOUT
 
     # ============ Request Helpers ============
 
-    def _get(self, request_path, params = {}) -> Response:
+    def _get(self, request_path, params: dict = {}) -> Response:
         return request(
             generate_query_path(self.host + request_path, params),
             'get',
@@ -33,7 +34,6 @@ class Utility(object):
         uri = '/v4/time'
         return self._get(uri)
 
-
     def get_height(self) -> Response:
         '''
         Get indexer last block height
@@ -44,7 +44,7 @@ class Utility(object):
         '''
         uri = '/v4/height'
         return self._get(uri)
-    
+
     def screen(self, address) -> Response:
         '''
         Screen an address to see if it is restricted
@@ -52,7 +52,7 @@ class Utility(object):
         :param address: required
 
         :returns: whether the specified address is restricted
-        
+
         :raises: DydxAPIError
         '''
         uri = '/v4/screen'
