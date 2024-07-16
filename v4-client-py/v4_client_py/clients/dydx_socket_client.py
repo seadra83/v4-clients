@@ -2,15 +2,27 @@ import json
 import websocket
 import threading
 import time
+from enum import Enum
 
 from .constants import IndexerConfig
+
+
+class CandleResolution(Enum):
+    ONE_MINUTE = '1MIN'
+    FIVE_MINUTES = '5MINS'
+    FIFTEEN_MINUTES = '15MINS'
+    THIRTY_MINUTES = '30MINS'
+    ONE_HOUR = '1HOUR'
+    FOUR_HOURS = '4HOURS'
+    ONE_DAY = '1DAY'
+
 
 class SocketClient:
     def __init__(
         self,
-        config: IndexerConfig, 
-        on_message=None, 
-        on_open=None, 
+        config: IndexerConfig,
+        on_message=None,
+        on_open=None,
         on_close=None
     ):
         self.url = config.websocket_endpoint
@@ -121,11 +133,11 @@ class SocketClient:
     def unsubscribe_from_orderbook(self, market: str):
         self.unsubscribe('v4_orderbook', {'id': market})
 
-    def subscribe_to_candles(self, market: str):
-        self.subscribe('v4_candles', {'id': market, 'batched': 'true'})
+    def subscribe_to_candles(self, market: str, resolution: CandleResolution):
+        self.subscribe('v4_candles', {'id': f'{market}/{resolution.value}', 'batched': 'true'})
 
-    def unsubscribe_from_candles(self, market: str):
-        self.unsubscribe('v4_candles', {'id': market})
+    def unsubscribe_from_candles(self, market: str, resolultion: CandleResolution):
+        self.unsubscribe('v4_candles', {'id': f'{market}/{resolultion.value}'})
 
     def subscribe_to_subaccount(self, address: str, subaccount_number: int):
         subaccount_id = '/'.join([address, str(subaccount_number)])
