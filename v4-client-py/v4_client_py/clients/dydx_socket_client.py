@@ -134,15 +134,23 @@ class SocketClient:
         self.unsubscribe('v4_orderbook', {'id': market})
 
     def subscribe_to_candles(self, market: str, resolution: CandleResolution):
-        self.subscribe('v4_candles', {'id': f'{market}/{resolution.value}', 'batched': 'true'})
+        candles_id = f'{market}/{resolution.value}'
+        self.subscribe('v4_candles', {'id': candles_id, 'batched': 'true'})
 
-    def unsubscribe_from_candles(self, market: str, resolultion: CandleResolution):
-        self.unsubscribe('v4_candles', {'id': f'{market}/{resolultion.value}'})
+    def unsubscribe_from_candles(self, market: str, resolution: CandleResolution):
+        candles_id = f'{market}/{resolution.value}'
+        self.unsubscribe('v4_candles', {'id': candles_id})
 
     def subscribe_to_subaccount(self, address: str, subaccount_number: int):
-        subaccount_id = '/'.join([address, str(subaccount_number)])
+        subaccount_id = f'{address}/{subaccount_number}'
         self.subscribe('v4_subaccounts', {'id': subaccount_id})
 
     def unsubscribe_from_subaccount(self, address: str, subaccount_number: int):
-        subaccount_id = '/'.join([address, str(subaccount_number)])
+        subaccount_id = f'{address}/{subaccount_number}'
         self.unsubscribe('v4_subaccounts', {'id': subaccount_id})
+
+    def subscribe_to_block_height(self) -> None:
+        self.subscribe('v4_block_height')
+
+    def unsubscribe_from_block_height(self) -> None:
+        self.unsubscribe('v4_block_height')
