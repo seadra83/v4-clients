@@ -1,8 +1,13 @@
 import json
-import websocket
 import threading
 import time
 from enum import Enum
+from typing import Callable, Optional
+
+from websocket import (
+    WebSocket,
+    WebSocketApp,
+)
 
 from .constants import IndexerConfig
 
@@ -21,12 +26,12 @@ class SocketClient:
     def __init__(
         self,
         config: IndexerConfig,
-        on_message=None,
-        on_open=None,
-        on_close=None
-    ):
+        on_message: Optional[Callable] = None,
+        on_open: Optional[Callable] = None,
+        on_close: Optional[Callable] = None
+    ) -> None:
         self.url = config.websocket_endpoint
-        self.ws = None
+        self.ws: WebSocketApp
         self.on_message = on_message
         self.on_open = on_open
         self.on_close = on_close
@@ -34,12 +39,13 @@ class SocketClient:
         self.ping_thread = None
         self.ping_sent_time = None
 
-    def connect(self):
-        self.ws = websocket.WebSocketApp(self.url,
-                                         on_open=self._on_open,
-                                         on_message=self._on_message,
-                                         on_close=self._on_close)
-
+    def connect(self) -> None:
+        self.ws = WebSocketApp(
+            self.url,
+            on_open=self._on_open,
+            on_message=self._on_message,
+            on_close=self._on_close,
+        )
         self.ws.run_forever()
 
     def _on_open(self, ws):
@@ -64,7 +70,7 @@ class SocketClient:
             print(f'Received message: {message}')
         self.last_activity_time = time.time()
 
-    def _on_close(self, ws):
+    def _on_close(self, ws: WebSocket, code: Optional[int], msg: Optional[str]) -> None:
         if self.on_close:
             self.on_close(ws)
         else:
@@ -103,49 +109,78 @@ class SocketClient:
         else:
             print('Error: WebSocket is not connected')
 
-    def subscribe(self, channel, params=None):
+    def subscribe(self, channel: str, params: Optional[dict] = None) -> None:
         if params is None:
             params = {}
-        message = json.dumps({'type': 'subscribe', 'channel': channel, **params})
+        message = json.dumps(
+            {
+                'type': 'subscribe',
+                'channel': channel,
+                **params,
+            },
+        )
         self.send(message)
 
-    def unsubscribe(self, channel, params=None):
+    def unsubscribe(self, channel: str, params: Optional[dict] = None) -> None:
         if params is None:
             params = {}
-        message = json.dumps({'type': 'unsubscribe', 'channel': channel, **params})
+        message = json.dumps(
+            {
+                'type': 'unsubscribe',
+                'channel': channel,
+                **params,
+            },
+        )
         self.send(message)
 
-    def subscribe_to_markets(self):
-        self.subscribe('v4_markets', {'batched': 'true'})
+    def subscribe_to_markets(self, batched: bool = True) -> None:
+        self.subscribe('v4_markets', {'batched': batched})
 
-    def unsubscribe_from_markets(self):
-        self.unsubscribe('v4_markets', {})
+    def unsubscribe_from_markets(self) -> None:
+        self.unsubscribe('v4_markets')
 
-    def subscribe_to_trades(self, market: str):
-        self.subscribe('v4_trades', {'id': market, 'batched': 'true'})
+    def subscribe_to_trades(self, market: str, batched: bool = True) -> None:
+        self.subscribe('v4_trades', {'id': market, 'batched': batched})
 
-    def unsubscribe_from_trades(self, market: str):
+    def unsubscribe_from_trades(self, market: str) -> None:
         self.unsubscribe('v4_trades', {'id': market})
 
-    def subscribe_to_orderbook(self, market: str):
-        self.subscribe('v4_orderbook', {'id': market, 'batched': 'true'})
+    def subscribe_to_orderbook(self, market: str, batched: bool = True) -> None:
+        self.subscribe('v4_orderbook', {'id': market, 'batched': batched})
 
-    def unsubscribe_from_orderbook(self, market: str):
+    def unsubscribe_from_orderbook(self, market: str) -> None:
         self.unsubscribe('v4_orderbook', {'id': market})
 
-    def subscribe_to_candles(self, market: str, resolution: CandleResolution):
+    def subscribe_to_candles(
+        self,
+        market: str,
+        resolution: CandleResolution,
+        batched: bool = True,
+    ) -> None:
         candles_id = f'{market}/{resolution.value}'
-        self.subscribe('v4_candles', {'id': candles_id, 'batched': 'true'})
+        self.subscribe('v4_candles', {'id': candles_id, 'batched': batched})
 
-    def unsubscribe_from_candles(self, market: str, resolution: CandleResolution):
+    def unsubscribe_from_candles(
+        self,
+        market: str,
+        resolution: CandleResolution,
+    ) -> None:
         candles_id = f'{market}/{resolution.value}'
         self.unsubscribe('v4_candles', {'id': candles_id})
 
-    def subscribe_to_subaccount(self, address: str, subaccount_number: int):
+    def subscribe_to_subaccount(
+        self,
+        address: str,
+        subaccount_number: int,
+    ) -> None:
         subaccount_id = f'{address}/{subaccount_number}'
         self.subscribe('v4_subaccounts', {'id': subaccount_id})
 
-    def unsubscribe_from_subaccount(self, address: str, subaccount_number: int):
+    def unsubscribe_from_subaccount(
+        self,
+        address: str,
+        subaccount_number: int,
+    ) -> None:
         subaccount_id = f'{address}/{subaccount_number}'
         self.unsubscribe('v4_subaccounts', {'id': subaccount_id})
 
