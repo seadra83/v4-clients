@@ -89,7 +89,7 @@ class Composer:
         subaccount_id = SubaccountId(owner=address, number=subaccount_number)
 
         is_stateful_order = is_order_flag_stateful_order(order_flags)
-        validate_good_til_fields(is_stateful_order, good_til_block_time, good_til_block)
+        validate_good_til_fields(is_stateful_order, good_til_block, good_til_block_time)
 
         order_id = OrderId(
             subaccount_id=subaccount_id,
@@ -103,14 +103,19 @@ class Composer:
             side=side,
             quantums=quantums,
             subticks=subticks,
-            good_til_block=good_til_block,
-            good_til_block_time=good_til_block_time,
-            time_in_force=time_in_force.value,
+            time_in_force=time_in_force,
             reduce_only=reduce_only,
             client_metadata=client_metadata,
             condition_type=condition_type,
             conditional_order_trigger_subticks=conditional_order_trigger_subticks,
         )
+
+        # good_til fields are good_til_oneof
+        if is_stateful_order:
+            order.good_til_block_time = good_til_block_time
+        else:
+            order.good_til_block = good_til_block
+
         return MsgPlaceOrder(order=order)
 
     def compose_msg_cancel_order(
@@ -155,7 +160,7 @@ class Composer:
             number=subaccount_number,
         )
         is_stateful_order = is_order_flag_stateful_order(order_flags)
-        validate_good_til_fields(is_stateful_order, good_til_block_time, good_til_block)
+        validate_good_til_fields(is_stateful_order, good_til_block, good_til_block_time)
 
         order_id = OrderId(
             subaccount_id=subaccount_id,
@@ -164,15 +169,13 @@ class Composer:
             clob_pair_id=int(clob_pair_id),
         )
 
+        msg_cancel_order = MsgCancelOrder(order_id=order_id)
         if is_stateful_order:
-            return MsgCancelOrder(
-                order_id=order_id,
-                good_til_block_time=good_til_block_time
-            )
-        return MsgCancelOrder(
-            order_id=order_id,
-            good_til_block=good_til_block
-        )
+            msg_cancel_order.good_til_block_time = good_til_block_time
+            return msg_cancel_order
+        else:
+            msg_cancel_order.good_til_block = good_til_block
+            return msg_cancel_order
 
     def compose_msg_batch_cancel(
         self,
