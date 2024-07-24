@@ -231,7 +231,7 @@ def calculate_execution_condition(reduce_only: bool) -> int:
 def calculate_order_flags(order_type: OrderType, time_in_force: OrderTimeInForce) -> OrderFlags:
     if order_type.is_conditional():
         return OrderFlags.CONDITIONAL
-    if time_in_force.requires_immediate_execution():
+    elif time_in_force.requires_immediate_execution():
         return OrderFlags.SHORT_TERM
 
     return OrderFlags.LONG_TERM
