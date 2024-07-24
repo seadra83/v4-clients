@@ -13,7 +13,7 @@ from v4_proto.dydxprotocol.sending.transfer_pb2 import (  # type: ignore
 from v4_proto.dydxprotocol.sending.tx_pb2 import MsgCreateTransfer  # type: ignore
 from v4_proto.dydxprotocol.subaccounts.subaccount_pb2 import SubaccountId  # type: ignore
 
-from v4_client_py.clients.helpers.chain_helpers import is_order_flag_stateful_order, validate_good_til_fields
+from v4_client_py.clients.helpers.chain_helpers import OrderFlags, validate_good_til_fields
 
 
 class Composer:
@@ -88,7 +88,7 @@ class Composer:
         '''
         subaccount_id = SubaccountId(owner=address, number=subaccount_number)
 
-        is_stateful_order = is_order_flag_stateful_order(order_flags)
+        is_stateful_order = OrderFlags.is_stateful(OrderFlags(order_flags))
         validate_good_til_fields(is_stateful_order, good_til_block, good_til_block_time)
 
         order_id = OrderId(
@@ -159,7 +159,7 @@ class Composer:
             owner=address,
             number=subaccount_number,
         )
-        is_stateful_order = is_order_flag_stateful_order(order_flags)
+        is_stateful_order = OrderFlags.is_stateful(OrderFlags(order_flags))
         validate_good_til_fields(is_stateful_order, good_til_block, good_til_block_time)
 
         order_id = OrderId(
@@ -173,9 +173,9 @@ class Composer:
         if is_stateful_order:
             msg_cancel_order.good_til_block_time = good_til_block_time
             return msg_cancel_order
-        else:
-            msg_cancel_order.good_til_block = good_til_block
-            return msg_cancel_order
+
+        msg_cancel_order.good_til_block = good_til_block
+        return msg_cancel_order
 
     def compose_msg_batch_cancel(
         self,

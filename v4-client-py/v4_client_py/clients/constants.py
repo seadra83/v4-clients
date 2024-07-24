@@ -54,6 +54,7 @@ ORDER_SIDE_SELL = 'SELL'
 
 # ------------ Time in Force Types ------------
 TIME_IN_FORCE_GTT = 'GTT'
+TIME_IN_FORCE_GTX = 'GTX'
 TIME_IN_FORCE_FOK = 'FOK'
 TIME_IN_FORCE_IOC = 'IOC'
 

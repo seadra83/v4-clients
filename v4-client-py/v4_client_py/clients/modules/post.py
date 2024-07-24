@@ -5,7 +5,8 @@ from google.protobuf.message import Message  # type: ignore
 from v4_proto.dydxprotocol.clob.order_pb2 import Order  # type: ignore
 from v4_proto.dydxprotocol.clob.tx_pb2 import MsgPlaceOrder  # type: ignore
 
-from v4_client_py.clients.helpers.chain_helpers import ORDER_FLAGS_LONG_TERM, ORDER_FLAGS_SHORT_TERM
+from v4_client_py.clients.helpers.chain_helpers import OrderFlags
+# from v4_client_py.clients.helpers.chain_helpers import ORDER_FLAGS_LONG_TERM, ORDER_FLAGS_SHORT_TERM
 
 from ..composer import Composer
 from ..constants import BroadcastMode, ValidatorConfig
@@ -366,11 +367,8 @@ class Post:
 
     def default_broadcast_mode(self, msg: Message) -> BroadcastMode:
         if isinstance(msg, MsgPlaceOrder):
-            order_flags = msg.order.order_id.order_flags
-            if order_flags == ORDER_FLAGS_SHORT_TERM:
-                return BroadcastMode.BroadcastTxSync
-            elif order_flags == ORDER_FLAGS_LONG_TERM:
+            order_flags = OrderFlags(msg.order.order_id.order_flags)
+            if order_flags.is_stateful():
                 return BroadcastMode.BroadcastTxCommit
-            else:
-                return BroadcastMode.BroadcastTxCommit
+
         return BroadcastMode.BroadcastTxSync

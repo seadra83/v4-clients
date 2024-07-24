@@ -1,8 +1,9 @@
+from enum import Enum, Flag, IntEnum, auto
 
-from enum import Flag, auto, Enum
-from v4_proto.dydxprotocol.clob.order_pb2 import Order
+from v4_proto.dydxprotocol.clob.order_pb2 import Order  # type: ignore
 
-class OrderType(Flag):
+
+class OrderType(Enum):
     MARKET = auto()
     LIMIT = auto()
     STOP_MARKET = auto()
@@ -10,81 +11,114 @@ class OrderType(Flag):
     STOP_LIMIT = auto()
     TAKE_PROFIT_LIMIT = auto()
 
+    @classmethod
+    def market(self) -> tuple['OrderType', ...]:
+        return (
+            self.MARKET,
+            self.STOP_MARKET,
+            self.TAKE_PROFIT_MARKET,
+        )
+
+    def is_market(self) -> bool:
+        return self in self.market()
+
+    @classmethod
+    def limit(self) -> tuple['OrderType', ...]:
+        return (
+            self.LIMIT,
+            self.STOP_LIMIT,
+            self.TAKE_PROFIT_LIMIT,
+        )
+
+    def is_limit(self) -> bool:
+        return self in self.limit()
+
+    @classmethod
+    def conditional(self) -> tuple['OrderType', ...]:
+        return (
+            self.STOP_MARKET,
+            self.TAKE_PROFIT_MARKET,
+            self.STOP_LIMIT,
+            self.TAKE_PROFIT_LIMIT,
+        )
+
+    def is_conditional(self) -> bool:
+        return self in self.conditional()
+
+    @classmethod
+    def stop(self) -> tuple['OrderType', ...]:
+        return (
+            self.STOP_MARKET,
+            self.STOP_LIMIT,
+        )
+
+    def is_stop(self) -> bool:
+        return self in self.stop()
+
+    @classmethod
+    def take_profit(self) -> tuple['OrderType', ...]:
+        return (
+            self.TAKE_PROFIT_MARKET,
+            self.TAKE_PROFIT_LIMIT,
+        )
+
+    def is_take_profit(self) -> bool:
+        return self in self.take_profit()
+
+
 class OrderSide(Flag):
     BUY = auto()
     SELL = auto()
 
+
 # FE enums. Do not pass these directly into the order proto TimeInForce field.
 class OrderTimeInForce(Flag):
     GTT = auto()    # Good Til Time
+    GTX = auto()    # Good Til Time & Post Only
     IOC = auto()    # Immediate or Cancel
     FOK = auto()    # Fill or Kill
 
-class OrderExecution(Flag):
-    DEFAULT = 0         # Default. Note proto enums start at 0, which is why this start at 0.
-    IOC = auto()        # Immediate or Cancel
-    POST_ONLY = auto()  # Post-only
-    FOK = auto()        # Fill or Kill
+    @classmethod
+    def immediate_execution(self) -> tuple['OrderTimeInForce', ...]:
+        return (
+            self.IOC,
+            self.FOK,
+        )
 
-# Enums to use in order proto fields. Use proto generated fields once that's fixed.
-# should match https://github.com/dydxprotocol/v4-chain/blob/main/proto/dydxprotocol/clob/order.proto#L159
-class Order_TimeInForce(Flag):
+    def requires_immediate_execution(self) -> bool:
+        return self in self.immediate_execution()
 
-    '''
-    TIME_IN_FORCE_UNSPECIFIED - TIME_IN_FORCE_UNSPECIFIED represents the default behavior where an
-    order will first match with existing orders on the book, and any
-    remaining size will be added to the book as a maker order.
-    '''
-    TIME_IN_FORCE_UNSPECIFIED = 0
 
-    '''
-    TIME_IN_FORCE_IOC - TIME_IN_FORCE_IOC enforces that an order only be matched with
-    maker orders on the book. If the order has remaining size after
-    matching with existing orders on the book, the remaining size
-    is not placed on the book.
-    '''
-    TIME_IN_FORCE_IOC = 1
+class OrderFlags(IntEnum):
+    SHORT_TERM = 0
+    CONDITIONAL = 32
+    LONG_TERM = 64
 
-    '''
-    TIME_IN_FORCE_POST_ONLY - TIME_IN_FORCE_POST_ONLY enforces that an order only be placed
-    on the book as a maker order. Note this means that validators will cancel
-    any newly-placed post only orders that would cross with other maker
-    orders.
-    '''
-    TIME_IN_FORCE_POST_ONLY = 2
+    def is_stateful(self) -> bool:
+        return self != self.SHORT_TERM
 
-    '''
-    TIME_IN_FORCE_FILL_OR_KILL - TIME_IN_FORCE_FILL_OR_KILL enforces that an order will either be filled
-    completely and immediately by maker orders on the book or canceled if the
-    entire amount can‘t be matched.
-    '''
-    TIME_IN_FORCE_FILL_OR_KILL = 3
 
-ORDER_FLAGS_SHORT_TERM = 0
-ORDER_FLAGS_LONG_TERM = 64
-ORDER_FLAGS_CONDITIONAL = 32
+MarketTifMap = {
+    OrderTimeInForce.IOC: Order.TIME_IN_FORCE_IOC,
+    OrderTimeInForce.FOK: Order.TIME_IN_FORCE_FILL_OR_KILL,
+}
+
+LimitTifMap = {
+    OrderTimeInForce.GTT: Order.TIME_IN_FORCE_UNSPECIFIED,
+    OrderTimeInForce.GTX: Order.TIME_IN_FORCE_POST_ONLY,
+    **MarketTifMap,
+}
 
 SHORT_BLOCK_WINDOW = 20
 
 QUOTE_QUANTUMS_ATOMIC_RESOLUTION = -6
 
-def is_order_flag_stateful_order(
-    order_flag: int
-) -> bool:
-    if order_flag == ORDER_FLAGS_SHORT_TERM:
-        return False
-    elif order_flag == ORDER_FLAGS_LONG_TERM:
-        return True
-    elif order_flag == ORDER_FLAGS_CONDITIONAL:
-        return True
-    else:
-        raise ValueError('Invalid order flag')
 
 def validate_good_til_fields(
     is_stateful_order: bool,
-    good_til_block_time: int,
     good_til_block: int,
-):
+    good_til_block_time: int,
+) -> None:
     if is_stateful_order:
         if good_til_block_time == 0:
             raise ValueError(
@@ -112,21 +146,24 @@ def validate_good_til_fields(
                 )
             )
 
+
 def round(
     number: float,
     base: int
 ) -> int:
     return int(number / base) * base
 
+
 def calculate_quantums(
-    size: float, 
-    atomic_resolution: int, 
+    size: float,
+    atomic_resolution: int,
     step_base_quantums: int,
 ):
     raw_quantums = size * 10**(-1 * atomic_resolution)
     quantums = round(raw_quantums, step_base_quantums)
     # step_base_quantums functions as the minimum order size
     return max(quantums, step_base_quantums)
+
 
 def calculate_subticks(
     price: float,
@@ -139,70 +176,75 @@ def calculate_subticks(
     subticks = round(raw_subticks, subticks_per_tick)
     return max(subticks, subticks_per_tick)
 
+
+def calculate_conditional_order_trigger_subticks(
+        order_type: OrderType,
+        atomic_resolution: int,
+        quantum_conversion_exponent: int,
+        subticks_per_tick: int,
+        trigger_price: float,
+) -> int:
+    if order_type.is_conditional():
+        if trigger_price is None:
+            raise ValueError(
+                'trigger_price is required for conditional orders',
+            )
+        return calculate_subticks(
+            trigger_price,
+            atomic_resolution,
+            quantum_conversion_exponent,
+            subticks_per_tick,
+        )
+
+    return 0
+
+
 def calculate_side(
     side: OrderSide,
 ) -> Order.Side:
     return Order.SIDE_BUY if side == OrderSide.BUY else Order.SIDE_SELL
-    
+
+
 def calculate_time_in_force(
-    type: OrderType, 
-    time_in_force: OrderTimeInForce, 
-    execution: OrderExecution, 
-    post_only: bool
-) -> Order_TimeInForce:
-    if type == OrderType.MARKET:
-        return Order_TimeInForce.TIME_IN_FORCE_IOC
-    elif type == OrderType.LIMIT:
-        if time_in_force == OrderTimeInForce.GTT:
-            if post_only:
-                return Order_TimeInForce.TIME_IN_FORCE_POST_ONLY
-            else:
-                return Order_TimeInForce.TIME_IN_FORCE_UNSPECIFIED
-        elif time_in_force == OrderTimeInForce.FOK:
-            return Order_TimeInForce.TIME_IN_FORCE_FILL_OR_KILL
-        elif time_in_force == OrderTimeInForce.IOC:
-            return Order_TimeInForce.TIME_IN_FORCE_IOC
-        else:
-            raise Exception("Unexpected code path: time_in_force")
-    elif type == OrderType.STOP_LIMIT or type == OrderType.TAKE_PROFIT_LIMIT:
-        if execution == OrderExecution.DEFAULT:
-            return Order_TimeInForce.TIME_IN_FORCE_UNSPECIFIED
-        elif execution == OrderExecution.POST_ONLY:
-            return Order_TimeInForce.TIME_IN_FORCE_POST_ONLY
-        if execution == OrderExecution.FOK:
-            return Order_TimeInForce.TIME_IN_FORCE_FILL_OR_KILL
-        elif execution == OrderExecution.IOC:
-            return Order_TimeInForce.TIME_IN_FORCE_IOC
-        else:
-            raise Exception("Unexpected code path: time_in_force")
-    elif type == OrderType.STOP_MARKET or type == OrderType.TAKE_PROFIT_MARKET:
-        if execution == OrderExecution.DEFAULT:
-            raise Exception("Execution value DEFAULT not supported for STOP_MARKET or TAKE_PROFIT_MARKET")
-        elif execution == OrderExecution.POST_ONLY:
-            raise Exception("Execution value POST_ONLY not supported for STOP_MARKET or TAKE_PROFIT_MARKET")
-        if execution == OrderExecution.FOK:
-            return Order_TimeInForce.TIME_IN_FORCE_FILL_OR_KILL
-        elif execution == OrderExecution.IOC:
-            return Order_TimeInForce.TIME_IN_FORCE_IOC
-        else:
-            raise Exception("Unexpected code path: time_in_force")
-    else:
-        raise Exception("Unexpected code path: time_in_force")
+    order_type: OrderType,
+    time_in_force: OrderTimeInForce,
+) -> Order.TimeInForce:
+    if order_type.is_market():
+        if (tif := MarketTifMap.get(time_in_force)) is None:
+            raise ValueError(f'Invalid time_in_force: {time_in_force} for order_type: {order_type}')
+        return tif
+    elif order_type.is_limit():
+        if (tif := LimitTifMap.get(time_in_force)) is None:
+            raise ValueError(f'Invalid time_in_force: {time_in_force} for order_type: {order_type}')
+        return tif
+
+    raise Exception(f'Invalid order_type: {order_type}')
+
 
 def calculate_execution_condition(reduce_only: bool) -> int:
     if reduce_only:
         return Order.EXECUTION_CONDITION_REDUCE_ONLY
-    else:
-        return Order.EXECUTION_CONDITION_UNSPECIFIED
 
-def calculate_order_flags(type: OrderType, time_in_force: OrderTimeInForce) -> int:
-    if type == OrderType.MARKET:
-        return ORDER_FLAGS_SHORT_TERM
-    elif type == OrderType.LIMIT:
-        if time_in_force == OrderTimeInForce.GTT:
-            return ORDER_FLAGS_LONG_TERM
-        else:
-            return ORDER_FLAGS_SHORT_TERM
-    else:
-        return ORDER_FLAGS_CONDITIONAL
-    
+    return Order.EXECUTION_CONDITION_UNSPECIFIED
+
+
+def calculate_order_flags(order_type: OrderType, time_in_force: OrderTimeInForce) -> OrderFlags:
+    if order_type.is_conditional():
+        return OrderFlags.CONDITIONAL
+    if time_in_force.requires_immediate_execution():
+        return OrderFlags.SHORT_TERM
+
+    return OrderFlags.LONG_TERM
+
+
+def calculate_client_metadata(order_type: OrderType) -> int:
+    return int(order_type.is_market())
+
+
+def calculate_condition_type(order_type: OrderType) -> Order.ConditionType:
+    if order_type.is_stop():
+        return Order.CONDITION_TYPE_STOP_LOSS
+    elif order_type.is_take_profit():
+        return Order.CONDITION_TYPE_TAKE_PROFIT
+
+    return Order.CONDITION_TYPE_UNSPECIFIED
