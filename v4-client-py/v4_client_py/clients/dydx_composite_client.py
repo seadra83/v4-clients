@@ -1,6 +1,6 @@
 import grpc  # type: ignore
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple
 
 from .constants import BroadcastMode, Network
 from .dydx_indexer_client import IndexerClient
@@ -104,9 +104,9 @@ class CompositeClient:
         size: float,
         client_id: int,
         time_in_force: OrderTimeInForce,
-        good_til_blocks: int,
-        good_til_seconds: int,
-        reduce_only: bool,
+        good_til_blocks: int = 0,
+        good_til_seconds: int = 0,
+        reduce_only: bool = False,
         trigger_price: float = 0,
         market_info: Optional[dict] = None,
         latest_height: Optional[int] = None,
@@ -213,7 +213,7 @@ class CompositeClient:
         client_id: int,
         good_til_blocks: int,
         time_in_force: Order.TimeInForce,
-        reduce_only: bool,
+        reduce_only: bool = False,
         market_info: Optional[dict] = None,
         latest_height: Optional[int] = None,
         broadcast_mode: Optional[BroadcastMode] = None,
